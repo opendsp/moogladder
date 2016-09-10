@@ -9,8 +9,8 @@
  * @license mit
  */
 
-import Filter from 'opendsp/filter/1.0.0';
-import prewarp from 'opendsp/prewarp';
+import Filter from 'filter';
+import prewarp from 'prewarp';
 
 export default MoogLadder;
 
@@ -22,7 +22,7 @@ function MoogLadder(model){
   this.lpf4 = Filter('lpf');
   this.apf1 = Filter('apf');
   this.model = model || 'half';
-  
+
   this.fc = 200;
   this.a = 0;
   this.k = 0.01;
@@ -79,7 +79,7 @@ MoogLadder.prototype.update = function(){
 		// Gm = G^4
 		this.a = 1.0/(1.0 + this.k*G*G*G*G);
   }
-  
+
   return this;
 };
 
@@ -101,31 +101,31 @@ MoogLadder.prototype.sat = function(s){
 MoogLadder.prototype.run = function(xn){
   var SM = 0;
   var y = 0;
-  
+
   if ('half' === this.model) {
-    SM = 
+    SM =
       this.lpf1.getFeedbackOutput()
     + this.lpf2.getFeedbackOutput()
     + this.apf1.getFeedbackOutput()
     ;
   } else {
-    SM = 
+    SM =
       this.lpf1.getFeedbackOutput()
     + this.lpf2.getFeedbackOutput()
     + this.lpf3.getFeedbackOutput()
     + this.lpf4.getFeedbackOutput()
     ;
   }
-  
+
   var K = this.k;
   if ('half' === this.model && K > 2) K = 2;
-  
+
   var u = this.a * (xn - K*SM);
-  
+
   if (this.nlp) {
     u = tanh(u * this.s);
   }
-  
+
   if ('half' === this.model) {
 		y = this.apf1.run(this.lpf2.run(this.lpf1.run(u)));
   } else {
